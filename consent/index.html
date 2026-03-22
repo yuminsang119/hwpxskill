@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>119 신고 개인정보 수집 동의</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: -apple-system, 'Malgun Gothic', '맑은 고딕', sans-serif;
+  background: #f5f5f5;
+  color: #222;
+  line-height: 1.6;
+}
+.container {
+  max-width: 480px;
+  margin: 0 auto;
+  background: #fff;
+  min-height: 100vh;
+}
+.header {
+  background: #d32f2f;
+  color: #fff;
+  padding: 20px 16px;
+  text-align: center;
+}
+.header h1 { font-size: 20px; font-weight: 700; }
+.header p { font-size: 13px; margin-top: 4px; opacity: 0.9; }
+.section {
+  padding: 16px;
+  border-bottom: 8px solid #f0f0f0;
+}
+.section-title {
+  font-size: 15px;
+  font-weight: 700;
+  margin-bottom: 12px;
+  color: #333;
+}
+.info-box {
+  background: #fafafa;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 14px;
+  font-size: 13px;
+  line-height: 1.8;
+  margin-bottom: 12px;
+}
+.info-box b { color: #d32f2f; }
+table.info-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  margin-bottom: 12px;
+}
+table.info-table th {
+  background: #f5f5f5;
+  text-align: left;
+  padding: 10px 12px;
+  border: 1px solid #ddd;
+  width: 30%;
+  font-weight: 600;
+}
+table.info-table td {
+  padding: 10px 12px;
+  border: 1px solid #ddd;
+}
+.checkbox-group { margin: 8px 0; }
+.checkbox-group label {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px;
+  background: #fafafa;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  margin-bottom: 8px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+.checkbox-group label.checked {
+  border-color: #d32f2f;
+  background: #fff5f5;
+}
+.checkbox-group input[type="checkbox"] {
+  width: 22px;
+  height: 22px;
+  margin-top: 2px;
+  flex-shrink: 0;
+  accent-color: #d32f2f;
+}
+.sig-area {
+  border: 2px dashed #ccc;
+  border-radius: 8px;
+  background: #fafafa;
+  position: relative;
+  touch-action: none;
+  height: 180px;
+}
+.sig-area.active { border-color: #d32f2f; background: #fff; }
+.sig-placeholder {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: #aaa;
+  font-size: 14px;
+  pointer-events: none;
+}
+canvas { display: block; width: 100%; height: 100%; border-radius: 6px; }
+.btn-clear {
+  display: inline-block;
+  margin-top: 8px;
+  padding: 6px 16px;
+  font-size: 13px;
+  color: #666;
+  background: #f0f0f0;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.btn-submit {
+  display: block;
+  width: 100%;
+  padding: 16px;
+  font-size: 17px;
+  font-weight: 700;
+  color: #fff;
+  background: #bbb;
+  border: none;
+  border-radius: 10px;
+  cursor: not-allowed;
+  transition: background 0.3s;
+}
+.btn-submit.ready {
+  background: #d32f2f;
+  cursor: pointer;
+}
+.result {
+  display: none;
+  text-align: center;
+  padding: 60px 16px;
+}
+.result .icon { font-size: 64px; margin-bottom: 16px; }
+.result h2 { font-size: 20px; margin-bottom: 8px; }
+.result p { font-size: 14px; color: #666; }
+.timestamp { font-size: 12px; color: #999; margin-top: 12px; }
+</style>
+</head>
+<body>
+
+<div class="container" id="formView">
+  <div class="header">
+    <h1>119 신고 개인정보 수집 동의서</h1>
+    <p>소방청 긴급구조 개인정보 처리</p>
+  </div>
+
+  <!-- 수집 목적 안내 -->
+  <div class="section">
+    <div class="section-title">개인정보 수집 및 이용 안내</div>
+    <div class="info-box">
+      <b>수집 목적</b>: 119 긴급신고 접수 및 출동, 구급/구조 활동<br>
+      <b>수집 항목</b>: 성명, 연락처, 신고 위치, 환자 상태 정보<br>
+      <b>보유 기간</b>: 신고 처리 완료 후 5년<br>
+      <b>법적 근거</b>: 소방기본법 제18조, 119구조·구급에 관한 법률 제24조
+    </div>
+    <div class="info-box" style="font-size:12px; color:#666;">
+      ※ 동의를 거부할 권리가 있으나, 거부 시 신고 접수 및 긴급 구조·구급 서비스 제공에 제한이 있을 수 있습니다.
+    </div>
+  </div>
+
+  <!-- 신고자 정보 -->
+  <div class="section">
+    <div class="section-title">신고자 정보</div>
+    <table class="info-table">
+      <tr><th>성명</th><td><input type="text" id="name" placeholder="이름 입력" style="width:100%;border:none;font-size:14px;outline:none;background:transparent;"></td></tr>
+      <tr><th>연락처</th><td><input type="tel" id="phone" placeholder="010-0000-0000" style="width:100%;border:none;font-size:14px;outline:none;background:transparent;"></td></tr>
+      <tr><th>신고일시</th><td id="reportDate">-</td></tr>
+    </table>
+  </div>
+
+  <!-- 동의 체크 -->
+  <div class="section">
+    <div class="section-title">동의 항목</div>
+    <div class="checkbox-group">
+      <label id="lbl1">
+        <input type="checkbox" id="chk1" onchange="updateCheck(this)">
+        <span>[필수] 개인정보 수집 및 이용에 동의합니다.</span>
+      </label>
+      <label id="lbl2">
+        <input type="checkbox" id="chk2" onchange="updateCheck(this)">
+        <span>[필수] 위 안내 사항을 충분히 읽고 이해하였습니다.</span>
+      </label>
+      <label id="lbl3">
+        <input type="checkbox" id="chk3" onchange="updateCheck(this)">
+        <span>[선택] 구급 후속 안내를 위한 연락처 활용에 동의합니다.</span>
+      </label>
+    </div>
+  </div>
+
+  <!-- 서명 -->
+  <div class="section">
+    <div class="section-title">서명</div>
+    <div class="sig-area" id="sigArea">
+      <span class="sig-placeholder" id="sigPlaceholder">여기에 서명해 주세요</span>
+      <canvas id="sigCanvas"></canvas>
+    </div>
+    <button class="btn-clear" onclick="clearSig()">서명 지우기</button>
+  </div>
+
+  <!-- 제출 -->
+  <div class="section" style="border-bottom:none;">
+    <button class="btn-submit" id="btnSubmit" onclick="submit()">동의 및 제출</button>
+    <div class="timestamp" id="tsInfo"></div>
+  </div>
+</div>
+
+<!-- 완료 화면 -->
+<div class="container result" id="resultView">
+  <div class="icon">&#10004;</div>
+  <h2>동의가 완료되었습니다</h2>
+  <p>119 긴급구조 개인정보 수집에 동의해 주셔서 감사합니다.</p>
+  <div class="timestamp" id="resultTs"></div>
+</div>
+
+<script>
+// --- 날짜 표시 ---
+const now = new Date();
+document.getElementById('reportDate').textContent =
+  now.getFullYear() + '년 ' + (now.getMonth()+1) + '월 ' + now.getDate() + '일 ' +
+  now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
+
+// --- 체크박스 ---
+function updateCheck(el) {
+  el.closest('label').classList.toggle('checked', el.checked);
+  validateForm();
+}
+
+// --- 서명 캔버스 ---
+const canvas = document.getElementById('sigCanvas');
+const ctx = canvas.getContext('2d');
+const sigArea = document.getElementById('sigArea');
+let drawing = false;
+let hasSig = false;
+
+function resizeCanvas() {
+  const rect = sigArea.getBoundingClientRect();
+  canvas.width = rect.width;
+  canvas.height = rect.height;
+  ctx.strokeStyle = '#222';
+  ctx.lineWidth = 2.5;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+}
+resizeCanvas();
+window.addEventListener('resize', resizeCanvas);
+
+function getPos(e) {
+  const rect = canvas.getBoundingClientRect();
+  const t = e.touches ? e.touches[0] : e;
+  return { x: t.clientX - rect.left, y: t.clientY - rect.top };
+}
+
+canvas.addEventListener('mousedown', startDraw);
+canvas.addEventListener('mousemove', draw);
+canvas.addEventListener('mouseup', stopDraw);
+canvas.addEventListener('touchstart', startDraw, { passive: false });
+canvas.addEventListener('touchmove', draw, { passive: false });
+canvas.addEventListener('touchend', stopDraw);
+
+function startDraw(e) {
+  e.preventDefault();
+  drawing = true;
+  const p = getPos(e);
+  ctx.beginPath();
+  ctx.moveTo(p.x, p.y);
+  sigArea.classList.add('active');
+  document.getElementById('sigPlaceholder').style.display = 'none';
+}
+function draw(e) {
+  if (!drawing) return;
+  e.preventDefault();
+  const p = getPos(e);
+  ctx.lineTo(p.x, p.y);
+  ctx.stroke();
+  hasSig = true;
+}
+function stopDraw() {
+  drawing = false;
+  validateForm();
+}
+function clearSig() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  hasSig = false;
+  sigArea.classList.remove('active');
+  document.getElementById('sigPlaceholder').style.display = '';
+  validateForm();
+}
+
+// --- 유효성 검사 ---
+function validateForm() {
+  const name = document.getElementById('name').value.trim();
+  const chk1 = document.getElementById('chk1').checked;
+  const chk2 = document.getElementById('chk2').checked;
+  const btn = document.getElementById('btnSubmit');
+  if (name && chk1 && chk2 && hasSig) {
+    btn.classList.add('ready');
+    btn.disabled = false;
+  } else {
+    btn.classList.remove('ready');
+    btn.disabled = true;
+  }
+}
+document.getElementById('name').addEventListener('input', validateForm);
+document.getElementById('phone').addEventListener('input', validateForm);
+
+// --- 제출 ---
+function submit() {
+  if (!document.getElementById('btnSubmit').classList.contains('ready')) return;
+
+  const ts = new Date().toLocaleString('ko-KR');
+  const data = {
+    name: document.getElementById('name').value.trim(),
+    phone: document.getElementById('phone').value.trim(),
+    consent1: document.getElementById('chk1').checked,
+    consent2: document.getElementById('chk2').checked,
+    consent3: document.getElementById('chk3').checked,
+    signature: canvas.toDataURL('image/png'),
+    timestamp: ts
+  };
+
+  // 콘솔에 결과 출력 (실제 서비스에서는 서버 전송)
+  console.log('동의 데이터:', JSON.stringify(data, null, 2));
+
+  document.getElementById('formView').style.display = 'none';
+  document.getElementById('resultView').style.display = 'block';
+  document.getElementById('resultTs').textContent =
+    '처리 일시: ' + ts + ' | ' + data.name;
+}
+</script>
+</body>
+</html>
