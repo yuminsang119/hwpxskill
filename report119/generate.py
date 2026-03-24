@@ -221,9 +221,36 @@ def secpr_p(ids: IDGen) -> str:
   </hp:p>"""
 
 
-def generate_incident_block(ids: IDGen, inc: dict, index: int) -> list[str]:
+def page_break_p(ids: IDGen) -> str:
+    """페이지 나눔 문단."""
+    return f"""\
+  <hp:p id="{ids.next()}" paraPrIDRef="0" styleIDRef="0" pageBreak="1" columnBreak="0" merged="0">
+    <hp:run charPrIDRef="0"><hp:t/></hp:run>
+    <hp:linesegarray>
+      <hp:lineseg textpos="0" vertpos="0" vertsize="1000" textheight="1000" baseline="850" spacing="600" horzpos="0" horzsize="{BODY_WIDTH}" flags="393216"/>
+    </hp:linesegarray>
+  </hp:p>"""
+
+
+def estimate_row_h(text: str, cell_width: int = 33450, line_h: int = 1200,
+                   min_h: int = 2400) -> int:
+    """텍스트 길이에 따른 셀 높이 추정 (줄바꿈, 긴 텍스트 대응)."""
+    # 셀 너비 기준 한 줄에 들어가는 글자 수 (HWPUNIT → 대략 글자)
+    chars_per_line = max(1, cell_width // 280)  # 10pt 기준 약 280 HWPUNIT/글자
+    lines = 0
+    for paragraph in text.split("\n"):
+        lines += max(1, -(-len(paragraph) // chars_per_line))  # ceil division
+    return max(min_h, lines * line_h + 400)  # 400 = 상하 여백
+
+
+def generate_incident_block(ids: IDGen, inc: dict, index: int,
+                            is_first: bool = True) -> list[str]:
     """사건 1건의 상황보고서 블록 생성."""
     parts = []
+
+    # 2건째부터 페이지 나눔
+    if not is_first:
+        parts.append(page_break_p(ids))
 
     # 사건 번호 제목
     parts.append(text_p(ids, f"[{index}] 사건번호: {inc['case_number']}", charPr=8))
@@ -250,28 +277,35 @@ def generate_incident_block(ids: IDGen, inc: dict, index: int) -> list[str]:
 
     # 상황 내용
     parts.append(text_p(ids, "상황 내용", charPr=8))
+
+    value_w = BODY_WIDTH - 8504 - 566  # 값 셀의 텍스트 너비
+    sit_h = estimate_row_h(inc["situation"], value_w)
     situation_rows = table_row_2col(
-        ids, "상황개요", inc["situation"], 0, row_h=4800
+        ids, "상황개요", inc["situation"], 0, row_h=sit_h
     )
     # 조치사항
     actions_text = "\n".join(f"  {a}" for a in inc["actions"])
+    act_h = estimate_row_h(actions_text, value_w, min_h=3600)
     situation_rows += "\n" + table_row_2col(
-        ids, "조치사항", actions_text, 1, row_h=max(3600, 1200 * len(inc["actions"]))
+        ids, "조치사항", actions_text, 1, row_h=act_h
     )
     # 인명피해
+    cas_h = estimate_row_h(inc.get("casualties", "없음"), value_w)
     situation_rows += "\n" + table_row_2col(
-        ids, "인명피해", inc.get("casualties", "없음"), 2, row_h=2400
+        ids, "인명피해", inc.get("casualties", "없음"), 2, row_h=cas_h
     )
     # 재산피해
+    dmg_h = estimate_row_h(inc.get("damage", "없음"), value_w)
     situation_rows += "\n" + table_row_2col(
-        ids, "재산피해", inc.get("damage", "없음"), 3, row_h=2400
+        ids, "재산피해", inc.get("damage", "없음"), 3, row_h=dmg_h
     )
     # 처리결과
+    res_h = estimate_row_h(inc.get("result", ""), value_w)
     situation_rows += "\n" + table_row_2col(
-        ids, "처리결과", inc.get("result", ""), 4, row_h=2400
+        ids, "처리결과", inc.get("result", ""), 4, row_h=res_h
     )
 
-    detail_h = 4800 + max(3600, 1200 * len(inc["actions"])) + 2400 * 3
+    detail_h = sit_h + act_h + cas_h + dmg_h + res_h
     parts.append(make_table(ids, situation_rows, 5, detail_h))
 
     parts.append(empty_p(ids))
@@ -317,7 +351,7 @@ def generate_section_xml(data: dict) -> str:
     parts.append(empty_p(ids))
 
     for i, inc in enumerate(data["incidents"], 1):
-        parts.extend(generate_incident_block(ids, inc, i))
+        parts.extend(generate_incident_block(ids, inc, i, is_first=(i == 1)))
 
     # 서명란
     parts.append(empty_p(ids))
